@@ -97,8 +97,6 @@ server <- function(input, output) {
         Year=as.vector(na.omit(unique(aDFmonth$Year)))
       )
       aDFyear <<- aDFyear
-      cat("The amortization data for each of the", N, "months are stored in \"aDFmonth\".\n\n")
-      cat("The amortization data for each of the", L, "years are stored in \"aDFyear\".\n\n")
     }
     if(plotData==T) {
       barplot(t(aDFyear[,c(3,4)]), 
