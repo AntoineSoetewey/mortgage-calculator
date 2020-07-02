@@ -21,11 +21,6 @@ ui <- fluidPage(
     # App title ----
     titlePanel("Mortgage Calculator"),
     h4(tags$a(href = "https://www.antoinesoetewey.com/", "Antoine Soetewey")),
-    
-    tabsetPanel(
-        # Create tab1
-        tabPanel(
-            title = "Where to invest?",
             
             # Sidebar layout with input and output definitions ----
             sidebarLayout(
@@ -34,76 +29,31 @@ ui <- fluidPage(
                 sidebarPanel(
                     
                     # Input: Simple integer interval ----
-                    sliderInput("age", "How old are you?",
-                                min = 0, max = 100,
-                                value = 30
+                    numericInput("principal", "Principal (loan amount)", 200000, min = 0, step = 1000),
+                    hr(),
+                    numericInput("interest", "Annual interest rate (in %)", 2, min = 0, max = 100, step = 0.01),
+                    hr(),
+                    sliderInput("length", "Length of the loan (in years)",
+                                min = 0,
+                                max = 30,
+                                value = 25,
+                                step = 1
                     ),
                     hr(),
-                    numericInput("amount_to_invest", "How much are you willing to invest?", 1000, min = 0, step = 100),
+                    checkboxInput("plot", "Display plot?", TRUE),
+                    checkboxInput("month", "Monthly table?", FALSE),
                     hr(),
-                    HTML('<p>Report a <a href="https://github.com/AntoineSoetewey/optimal-asset-allocation/issues">bug</a> or view the <a href="https://github.com/AntoineSoetewey/optimal-asset-allocation">code</a>. See more information about this app in this <a href="https://www.statsandr.com/blog/practical-guide-on-optimal-asset-allocation/">article</a>.</p><p>Back to <a href="https://www.antoinesoetewey.com/">www.antoinesoetewey.com</a> or <a href="https://www.statsandr.com/">www.statsandr.com</a>.</p>')
+                    HTML('<p>Report a <a href="https://github.com/AntoineSoetewey/mortgage-calculator/issues">bug</a> or view the <a href="https://github.com/AntoineSoetewey/mortgage-calculator">code</a>. See more information about this app in this <a href="https://www.statsandr.com/blog/">article xxx edit link</a>.</p><p>Back to <a href="https://www.antoinesoetewey.com/">www.antoinesoetewey.com</a> or <a href="https://www.statsandr.com/">www.statsandr.com</a>.</p>')
                 ),
                 
                 # Main panel for displaying outputs ----
                 mainPanel(
                     
                     # Output: Table summarizing the values entered ----
-                    tableOutput("values"),
-                    tags$style(
-                        HTML("tr:nth-child(1) {font-weight: bold;}
-                 tr:nth-child(2) { white-space: pre; }
-                 tr:nth-child(3) { white-space: pre; }
-                 tr:nth-child(4) { white-space: pre; }
-                 tr:nth-child(5) {font-weight: bold;}
-                 tr:nth-child(6) { white-space: pre; }
-                 tr:nth-child(7) { white-space: pre; }
-                 tr:nth-child(8) { white-space: pre; }
-                 tr:nth-child(9) {font-weight: bold;}
-                 tr:nth-child(10) { white-space: pre; }
-                 tr:nth-child(11) {font-weight: bold;}
-                 tr:nth-child(12) { white-space: pre; }
-                 ")
-                    ),
+                    uiOutput("text"),
                     plotOutput("distPlot"),
                     br(),
-                    p(em("Disclosure: Note that this practical guide on asset allocation is based on the book A Random Walk Down Wall Street by Burton G. Malkiel. This application does not include investment advice or recommendations, nor a financial analysis. This application is intended for information only and you invest at your own risks. I cannot be held liable for any decision made based on the information contained in this application, nor for its use by third parties.")),
-                    br(),
-                    br()
-                )
-            )
-        ),
-        # Create tab2
-        tabPanel(
-            title = "Compare with your portfolio",
-            # Sidebar layout with input and output definitions ----
-            sidebarLayout(
-                
-                # Sidebar to demonstrate various slider options ----
-                sidebarPanel(
-                    
-                    # Input: Simple integer interval ----
-                    sliderInput("age2", "How old are you?",
-                                min = 0, max = 100,
-                                value = 30
-                    ),
-                    hr(),
-                    "Your portfolio:",
-                    br(),
-                    br(),
-                    numericInput("stocks", "Stocks", 0, min = 0, step = 100),
-                    numericInput("bonds", "Bonds", 0, min = 0, step = 100),
-                    numericInput("real_estate", "Real estate", 0, min = 0, step = 100),
-                    numericInput("cash", "Cash", 0, min = 0, step = 100),
-                    hr(),
-                    HTML('<p>Report a <a href="https://github.com/AntoineSoetewey/optimal-asset-allocation/issues">bug</a> or view the <a href="https://github.com/AntoineSoetewey/optimal-asset-allocation">code</a>. See more information about this app in this <a href="https://www.statsandr.com/blog/practical-guide-on-optimal-asset-allocation/">article</a>.</p><p>Back to <a href="https://www.antoinesoetewey.com/">www.antoinesoetewey.com</a> or <a href="https://www.statsandr.com/">www.statsandr.com</a>.</p>')
-                ),
-                
-                # Main panel for displaying outputs ----
-                mainPanel(
-                    br(),
-                    textOutput("total_amount"),
-                    br(),
-                    plotOutput("distPlot2"),
+                    DT::dataTableOutput("tbl"),
                     br(),
                     p(em("Disclosure: Note that this practical guide on asset allocation is based on the book A Random Walk Down Wall Street by Burton G. Malkiel. This application does not include investment advice or recommendations, nor a financial analysis. This application is intended for information only and you invest at your own risks. I cannot be held liable for any decision made based on the information contained in this application, nor for its use by third parties.")),
                     br(),
@@ -111,469 +61,94 @@ ui <- fluidPage(
                 )
             )
         )
-    )
-)
 
 # Define server logic for slider examples ----
 server <- function(input, output) {
-    
-    # Reactive expression to create data frame of all input values ----
-    sliderValues <- reactive({
-        if (input$age <= 35) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.7
-            stocks2_optperc <- 0.14 / 0.55 * 0.7
-            stocks3_optperc <- 0.14 / 0.55 * 0.7
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.15
-            bonds2_optperc <- 0.075 / 0.275 * 0.15
-            bonds3_optperc <- 0.125 / 0.275 * 0.15
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-            
-            df <- data.frame(
-                asset = c(
-                    "Stocks:",
-                    "    US Stocks",
-                    "    Developed International Markets Stocks",
-                    "    Emerging International Markets Stocks",
-                    "Bonds and Bond Substitutes:",
-                    "    US Corporate Bonds",
-                    "    Emerging Market Government Bonds",
-                    "    Dividend Growth Fund",
-                    "Real Estate:",
-                    "    Real Estate Equities",
-                    "Cash:",
-                    "    Cash"
-                ),
-                ticker = c(
-                    "",
-                    "SWTSX or VTSMX",
-                    "SWISX or VTMGX",
-                    "VEIEX or FFMAX",
-                    "",
-                    "VICSX or LQD",
-                    "VGAVX",
-                    "DGRW or VDIGX",
-                    "",
-                    "VGSIX or FRXIX",
-                    "",
-                    "FXLXX or VMMXX"
-                ),
-                optimal_percentage = c(
-                    "",
-                    paste(round(stocks1_optperc * 100, 2), "%"),
-                    paste(round(stocks2_optperc * 100, 2), "%"),
-                    paste(round(stocks3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(bonds1_optperc * 100, 2), "%"),
-                    paste(round(bonds2_optperc * 100, 2), "%"),
-                    paste(round(bonds3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(realestate_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(cash_optperc * 100, 2), "%")
-                ),
-                optimal_amount = c(
-                    "",
-                    round(stocks1_optperc * input$amount_to_invest, 2),
-                    round(stocks2_optperc * input$amount_to_invest, 2),
-                    round(stocks3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(bonds1_optperc * input$amount_to_invest, 2),
-                    round(bonds2_optperc * input$amount_to_invest, 2),
-                    round(bonds3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(realestate_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(cash_optperc * input$amount_to_invest, 2)
-                )
-            )
-            names(df) <- c("Asset", "Ticker", "Optimal percentage", "Optimal amount")
-            df
-        } else if (input$age >= 36 & input$age <= 44) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.65
-            stocks2_optperc <- 0.14 / 0.55 * 0.65
-            stocks3_optperc <- 0.14 / 0.55 * 0.65
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.20
-            bonds2_optperc <- 0.075 / 0.275 * 0.20
-            bonds3_optperc <- 0.125 / 0.275 * 0.20
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-            
-            df <- data.frame(
-                asset = c(
-                    "Stocks:",
-                    "    US Stocks",
-                    "    Developed International Markets Stocks",
-                    "    Emerging International Markets Stocks",
-                    "Bonds and Bond Substitutes:",
-                    "    US Corporate Bonds",
-                    "    Emerging Market Government Bonds",
-                    "    Dividend Growth Fund",
-                    "Real Estate:",
-                    "    Real Estate Equities",
-                    "Cash:",
-                    "    Cash"
-                ),
-                ticker = c(
-                    "",
-                    "SWTSX or VTSMX",
-                    "SWISX or VTMGX",
-                    "VEIEX or FFMAX",
-                    "",
-                    "VICSX or LQD",
-                    "VGAVX",
-                    "DGRW or VDIGX",
-                    "",
-                    "VGSIX or FRXIX",
-                    "",
-                    "FXLXX or VMMXX"
-                ),
-                optimal_percentage = c(
-                    "",
-                    paste(round(stocks1_optperc * 100, 2), "%"),
-                    paste(round(stocks2_optperc * 100, 2), "%"),
-                    paste(round(stocks3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(bonds1_optperc * 100, 2), "%"),
-                    paste(round(bonds2_optperc * 100, 2), "%"),
-                    paste(round(bonds3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(realestate_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(cash_optperc * 100, 2), "%")
-                ),
-                optimal_amount = c(
-                    "",
-                    round(stocks1_optperc * input$amount_to_invest, 2),
-                    round(stocks2_optperc * input$amount_to_invest, 2),
-                    round(stocks3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(bonds1_optperc * input$amount_to_invest, 2),
-                    round(bonds2_optperc * input$amount_to_invest, 2),
-                    round(bonds3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(realestate_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(cash_optperc * input$amount_to_invest, 2)
-                )
-            )
-            names(df) <- c("Asset", "Ticker", "Optimal percentage", "Optimal amount")
-            df
-        } else if (input$age >= 45 & input$age <= 64) {
-            stocks1_optperc <- 0.27
-            stocks2_optperc <- 0.14
-            stocks3_optperc <- 0.14
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075
-            bonds2_optperc <- 0.075
-            bonds3_optperc <- 0.125
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.125
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-            
-            df <- data.frame(
-                asset = c(
-                    "Stocks:",
-                    "    US Stocks",
-                    "    Developed International Markets Stocks",
-                    "    Emerging International Markets Stocks",
-                    "Bonds and Bond Substitutes:",
-                    "    US Corporate Bonds",
-                    "    Emerging Market Government Bonds",
-                    "    Dividend Growth Fund",
-                    "Real Estate:",
-                    "    Real Estate Equities",
-                    "Cash:",
-                    "    Cash"
-                ),
-                ticker = c(
-                    "",
-                    "SWTSX or VTSMX",
-                    "SWISX or VTMGX",
-                    "VEIEX or FFMAX",
-                    "",
-                    "VICSX or LQD",
-                    "VGAVX",
-                    "DGRW or VDIGX",
-                    "",
-                    "VGSIX or FRXIX",
-                    "",
-                    "FXLXX or VMMXX"
-                ),
-                optimal_percentage = c(
-                    "",
-                    paste(round(stocks1_optperc * 100, 2), "%"),
-                    paste(round(stocks2_optperc * 100, 2), "%"),
-                    paste(round(stocks3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(bonds1_optperc * 100, 2), "%"),
-                    paste(round(bonds2_optperc * 100, 2), "%"),
-                    paste(round(bonds3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(realestate_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(cash_optperc * 100, 2), "%")
-                ),
-                optimal_amount = c(
-                    "",
-                    round(stocks1_optperc * input$amount_to_invest, 2),
-                    round(stocks2_optperc * input$amount_to_invest, 2),
-                    round(stocks3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(bonds1_optperc * input$amount_to_invest, 2),
-                    round(bonds2_optperc * input$amount_to_invest, 2),
-                    round(bonds3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(realestate_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(cash_optperc * input$amount_to_invest, 2)
-                )
-            )
-            names(df) <- c("Asset", "Ticker", "Optimal percentage", "Optimal amount")
-            df
-        } else {
-            stocks1_optperc <- 0.27 / 0.55 * 0.40
-            stocks2_optperc <- 0.14 / 0.55 * 0.40
-            stocks3_optperc <- 0.14 / 0.55 * 0.40
-            
-            bonds1_optperc <- 0.075 / 0.275 * 0.35
-            bonds2_optperc <- 0.075 / 0.275 * 0.35
-            bonds3_optperc <- 0.125 / 0.275 * 0.35
-            
-            realestate_optperc <- 0.15
-            cash_optperc <- 0.10
-            
-            
-            df <- data.frame(
-                asset = c(
-                    "Stocks:",
-                    "    US Stocks",
-                    "    Developed International Markets Stocks",
-                    "    Emerging International Markets Stocks",
-                    "Bonds and Bond Substitutes:",
-                    "    US Corporate Bonds",
-                    "    Emerging Market Government Bonds",
-                    "    Dividend Growth Fund",
-                    "Real Estate:",
-                    "    Real Estate Equities",
-                    "Cash:",
-                    "    Cash"
-                ),
-                ticker = c(
-                    "",
-                    "SWTSX or VTSMX",
-                    "SWISX or VTMGX",
-                    "VEIEX or FFMAX",
-                    "",
-                    "VICSX or LQD",
-                    "VGAVX",
-                    "DGRW or VDIGX",
-                    "",
-                    "VGSIX or FRXIX",
-                    "",
-                    "FXLXX or VMMXX"
-                ),
-                optimal_percentage = c(
-                    "",
-                    paste(round(stocks1_optperc * 100, 2), "%"),
-                    paste(round(stocks2_optperc * 100, 2), "%"),
-                    paste(round(stocks3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(bonds1_optperc * 100, 2), "%"),
-                    paste(round(bonds2_optperc * 100, 2), "%"),
-                    paste(round(bonds3_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(realestate_optperc * 100, 2), "%"),
-                    "",
-                    paste(round(cash_optperc * 100, 2), "%")
-                ),
-                optimal_amount = c(
-                    "",
-                    round(stocks1_optperc * input$amount_to_invest, 2),
-                    round(stocks2_optperc * input$amount_to_invest, 2),
-                    round(stocks3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(bonds1_optperc * input$amount_to_invest, 2),
-                    round(bonds2_optperc * input$amount_to_invest, 2),
-                    round(bonds3_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(realestate_optperc * input$amount_to_invest, 2),
-                    "",
-                    round(cash_optperc * input$amount_to_invest, 2)
-                )
-            )
-            names(df) <- c("Asset", "Ticker", "Optimal percentage", "Optimal amount")
-            df
-        }
-    })
-    
-    # Show the values in an HTML table ----
-    output$values <- renderTable({
-        sliderValues()
-    })
-    
+  
+  mortgage <- function(P=500000, I=6, L=30, amort=TRUE, plotData=TRUE) { 
+    J <- I/(12 * 100)
+    N <- 12 * L
+    M <- P*J/(1-(1+J)^(-N))
+    monthPay <<- M
+    # Calculate Amortization for each Month
+    if(amort==T) {
+      Pt <- P # current principal or amount of the loan
+      currP <- NULL
+      while(Pt>=0) {
+        H <- Pt * J # this is the current monthly interest
+        C <- M - H # this is your monthly payment minus your monthly interest, so it is the amount of principal you pay for that month
+        Q <- Pt - C # this is the new balance of your principal of your loan
+        Pt <- Q # sets P equal to Q and goes back to step 1. The loop continues until the value Q (and hence P) goes to zero
+        currP <- c(currP, Pt)
+      }
+      monthP <- c(P, currP[1:(length(currP)-1)])-currP
+      aDFmonth <<- data.frame(
+        Amortization=c(P, currP[1:(length(currP)-1)]), 
+        Monthly_Payment=monthP+c((monthPay-monthP)[1:(length(monthP)-1)],0),
+        Monthly_Principal=monthP, 
+        Monthly_Interest=c((monthPay-monthP)[1:(length(monthP)-1)],0), 
+        Year=sort(rep(1:ceiling(N/12), 12))[1:length(monthP)]
+      )
+      aDFyear <- data.frame(
+        Amortization=tapply(aDFmonth$Amortization, aDFmonth$Year, max), 
+        Annual_Payment=tapply(aDFmonth$Monthly_Payment, aDFmonth$Year, sum), 
+        Annual_Principal=tapply(aDFmonth$Monthly_Principal, aDFmonth$Year, sum), 
+        Annual_Interest=tapply(aDFmonth$Monthly_Interest, aDFmonth$Year, sum), 
+        Year=as.vector(na.omit(unique(aDFmonth$Year)))
+      )
+      aDFyear <<- aDFyear
+      cat("The amortization data for each of the", N, "months are stored in \"aDFmonth\".\n\n")
+      cat("The amortization data for each of the", L, "years are stored in \"aDFyear\".\n\n")
+    }
+    if(plotData==T) {
+      barplot(t(aDFyear[,c(3,4)]), 
+              col=c("blue", "red"), 
+              main="Annual Interest and Principal Payments", 
+              sub="The data for this plot is stored in aDFyear.",
+              xlab="Years", ylab="$ Amount", 
+              legend.text=c("Principal", "Interest"), 
+              ylim=c(0, max(aDFyear$Annual_Payment)*1.3))
+    }
+  }
+  
+  output$text <- renderUI({
+    mortgage(P = input$principal, I = input$interest, L = input$length, plotData = FALSE)
+    HTML(paste0("Monthly payment: ", "<b>", format(round(monthPay, digits = 2), big.mark = ","), "</b>",
+                "<br>",
+                "Total cost: ", "<b>", format(round(monthPay * 12 * input$length, digits = 2), big.mark = ","), "</b>"))
+  })
+  
     output$distPlot <- renderPlot({
-        if (input$age <= 35) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.7
-            stocks2_optperc <- 0.14 / 0.55 * 0.7
-            stocks3_optperc <- 0.14 / 0.55 * 0.7
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.15
-            bonds2_optperc <- 0.075 / 0.275 * 0.15
-            bonds3_optperc <- 0.125 / 0.275 * 0.15
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else if (input$age >= 36 & input$age <= 44) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.65
-            stocks2_optperc <- 0.14 / 0.55 * 0.65
-            stocks3_optperc <- 0.14 / 0.55 * 0.65
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.20
-            bonds2_optperc <- 0.075 / 0.275 * 0.20
-            bonds3_optperc <- 0.125 / 0.275 * 0.20
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else if (input$age >= 45 & input$age <= 64) {
-            stocks1_optperc <- 0.27
-            stocks2_optperc <- 0.14
-            stocks3_optperc <- 0.14
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075
-            bonds2_optperc <- 0.075
-            bonds3_optperc <- 0.125
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.125
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else {
-            stocks1_optperc <- 0.27 / 0.55 * 0.40
-            stocks2_optperc <- 0.14 / 0.55 * 0.40
-            stocks3_optperc <- 0.14 / 0.55 * 0.40
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.35
-            bonds2_optperc <- 0.075 / 0.275 * 0.35
-            bonds3_optperc <- 0.125 / 0.275 * 0.35
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.15
-            cash_optperc <- 0.10
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        }
-        
-        # # pie chart with percentages
-        # slices <- c(stocks_optperc, bonds_optperc, realestate_optperc, cash_optperc)
-        # lbls <- c("stocks", "bonds", "real estate", "cash")
-        # pct <- round(slices/sum(slices)*100)
-        # lbls <- paste(lbls, pct) # add percents to labels
-        # lbls <- paste(lbls,"%",sep="") # add % to labels
-        # pie(slices,labels = lbls, col=rainbow(length(lbls))#,
-        #     #main="Optimal assets allocation"
-        #     )
-        slices <- c(stocks_optperc, bonds_optperc, realestate_optperc, cash_optperc) * 100
-        lbls <- c("Stocks", "Bonds", "Real estate", "Cash")
-        df <- data.frame(lbls = lbls, slices = slices)
-        p <- ggplot(data = df, aes(x = reorder(lbls, -slices), y = slices)) +
-            geom_bar(stat = "identity", fill = "steelblue") +
-            # scale_x_discrete(limits=c("Stocks", "Bonds", "Real estate", "Cash")) +
-            theme_minimal() +
-            geom_text(aes(label = slices), vjust = 1.6, color = "white", size = 3.5) +
-            labs(
-                title = "Optimal asset allocation",
-                x = "Asset", y = "Weight (%)"
-            ) +
-            theme(
-                axis.text = element_text(size = 12),
-                axis.title = element_text(size = 14, face = "bold"),
-                plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
-            )
-        p
+        mortgage(P = input$principal, I = input$interest, L = input$length, plotData = input$plot)
     })
     
-    output$distPlot2 <- renderPlot({
-        if (input$age2 <= 35) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.7
-            stocks2_optperc <- 0.14 / 0.55 * 0.7
-            stocks3_optperc <- 0.14 / 0.55 * 0.7
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.15
-            bonds2_optperc <- 0.075 / 0.275 * 0.15
-            bonds3_optperc <- 0.125 / 0.275 * 0.15
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else if (input$age2 >= 36 & input$age2 <= 44) {
-            stocks1_optperc <- 0.27 / 0.55 * 0.65
-            stocks2_optperc <- 0.14 / 0.55 * 0.65
-            stocks3_optperc <- 0.14 / 0.55 * 0.65
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.20
-            bonds2_optperc <- 0.075 / 0.275 * 0.20
-            bonds3_optperc <- 0.125 / 0.275 * 0.20
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.10
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else if (input$age2 >= 45 & input$age2 <= 64) {
-            stocks1_optperc <- 0.27
-            stocks2_optperc <- 0.14
-            stocks3_optperc <- 0.14
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075
-            bonds2_optperc <- 0.075
-            bonds3_optperc <- 0.125
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.125
-            cash_optperc <- 0.05
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        } else {
-            stocks1_optperc <- 0.27 / 0.55 * 0.40
-            stocks2_optperc <- 0.14 / 0.55 * 0.40
-            stocks3_optperc <- 0.14 / 0.55 * 0.40
-            stocks_optperc <- stocks1_optperc + stocks2_optperc + stocks3_optperc
-            bonds1_optperc <- 0.075 / 0.275 * 0.35
-            bonds2_optperc <- 0.075 / 0.275 * 0.35
-            bonds3_optperc <- 0.125 / 0.275 * 0.35
-            bonds_optperc <- bonds1_optperc + bonds2_optperc + bonds3_optperc
-            realestate_optperc <- 0.15
-            cash_optperc <- 0.10
-            total_optperc <- stocks_optperc + bonds_optperc + realestate_optperc + cash_optperc
-        }
-        
-        slices_opt <- 100 * c(stocks_optperc, bonds_optperc, realestate_optperc, cash_optperc)
-        lbls_opt <- c("stocks", "bonds", "real estate", "cash")
-        grandtotal_amount <- sum(c(input$stocks, input$bonds, input$real_estate, input$cash), na.rm = TRUE)
-        slices_actual <- round(100 * c(input$stocks / grandtotal_amount, input$bonds / grandtotal_amount, input$real_estate / grandtotal_amount, input$cash / grandtotal_amount), 2)
-        
-        output$total_amount <- renderText({
-            print(paste0("Portfolio's total amount: ", grandtotal_amount))
-        })
-        df <- data.frame(x = slices_opt, y = slices_actual, lbls = lbls_opt)
-        df <- melt(df, id.vars = "lbls")
-        p <- ggplot(df, aes(x = reorder(lbls, -value), y = value, fill = variable)) +
-            geom_bar(stat = "identity", position = "dodge") +
-            theme_minimal() +
-            labs(
-                title = "Optimal vs portfolio asset allocation",
-                x = "Asset", y = "Weight (%)"
-            ) +
-            theme(
-                axis.text = element_text(size = 12),
-                axis.title = element_text(size = 14, face = "bold"),
-                plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
-            ) +
-            scale_fill_discrete(name = "", labels = c("Optimal", "Portfolio"))
-        p
+    # Data output
+    output$tbl <- DT::renderDataTable({
+      mortgage(P = input$principal, I = input$interest, L = input$length, plotData = FALSE)
+df_month <- DT::datatable(data.frame(round(aDFmonth, 2)),
+                                                extensions = "Buttons",
+                                                options = list(
+                                                  lengthChange = FALSE,
+                                                  dom = "Blrtip",
+                                                  buttons = c("copy", "csv", "excel", "pdf", "print"),
+                                                  pageLength = input$length * 12
+                                                )
+      )
+
+df_year <- DT::datatable(data.frame(round(aDFyear, 2)),
+                          extensions = "Buttons",
+                          options = list(
+                            lengthChange = FALSE,
+                            dom = "Blrtip",
+                            buttons = c("copy", "csv", "excel", "pdf", "print"),
+                            pageLength = input$length
+                          )
+)
+      if(input$month == TRUE) {
+        df_month
+      } else {
+        df_year
+      }
     })
 }
 
