@@ -33,7 +33,7 @@ ui <- fluidPage(
       hr(),
       numericInput("interest", "Annual interest rate (in %)", 2, min = 0, max = 100, step = 0.01),
       hr(),
-      sliderInput("length", "Length of the loan (in years)",
+      sliderInput("length", "Duration of the loan (in years)",
         min = 0,
         max = 30,
         value = 25,
@@ -101,7 +101,7 @@ server <- function(input, output) {
       aDFyear <<- aDFyear
     }
     if (plotData == TRUE) {
-      aDFyear2 <- aDFyear %>% 
+      aDFyear2 <- aDFyear %>%
         rename(
           Interest = Annual_Interest,
           Payment = Annual_Payment,
@@ -109,8 +109,8 @@ server <- function(input, output) {
         )
       aDFyear2$Year <- as.factor(aDFyear2$Year)
       aDFyear2 <- melt(aDFyear2[, c("Interest", "Principal", "Year")], id.vars = "Year")
-      
-      ggplot(aDFyear2, aes(x = Year, y = value, fill = variable)) + 
+
+      ggplot(aDFyear2, aes(x = Year, y = value, fill = variable)) +
         geom_bar(position = "fill", stat = "identity") +
         labs(y = "Payment") +
         scale_y_continuous(labels = percent) +
@@ -131,7 +131,7 @@ server <- function(input, output) {
       "<br>",
       "<b>", "Monthly payment: ", format(round(monthPay, digits = 2), big.mark = ","), "</b>",
       "<br>",
-      "<b>","Total cost: ", "</b>", format(round(input$principal, 2), big.mark = ","), " (principal) + ", format(round(monthPay * 12 * input$length - input$principal, 2), big.mark = ","), " (interest) = ", "<b>", format(round(monthPay * 12 * input$length, digits = 2), big.mark = ","), "</b>"
+      "<b>", "Total cost: ", "</b>", format(round(input$principal, 2), big.mark = ","), " (principal) + ", format(round(monthPay * 12 * input$length - input$principal, 2), big.mark = ","), " (interest) = ", "<b>", format(round(monthPay * 12 * input$length, digits = 2), big.mark = ","), "</b>"
     ))
   })
 
