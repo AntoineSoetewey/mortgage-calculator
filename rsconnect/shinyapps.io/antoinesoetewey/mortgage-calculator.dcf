@@ -5,8 +5,8 @@ account: antoinesoetewey
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2670243
-bundleId: 3516216
+bundleId: 4025659
 url: https://antoinesoetewey.shinyapps.io/mortgage-calculator/
-when: 1597415180.09399
+when: 1608813436.45033
 asMultiple: FALSE
 asStatic: FALSE

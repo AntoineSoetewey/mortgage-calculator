@@ -42,7 +42,7 @@ ui <- fluidPage(
       hr(),
       checkboxInput("plot", "Display plot?", TRUE),
       hr(),
-      HTML('<p>Report a <a href="https://github.com/AntoineSoetewey/mortgage-calculator/issues">bug</a> or view the <a href="https://github.com/AntoineSoetewey/mortgage-calculator">code</a>. See more information about this app in this <a href="https://www.statsandr.com/blog/mortgage-calculator-r-shiny">article</a>. Back to <a href="https://www.antoinesoetewey.com/">www.antoinesoetewey.com</a> or <a href="https://www.statsandr.com/">www.statsandr.com</a>.</p>')
+      HTML('<p>Report a <a href="https://github.com/AntoineSoetewey/mortgage-calculator/issues">bug</a> or view the <a href="https://github.com/AntoineSoetewey/mortgage-calculator">code</a>. See more information about this app in this <a href="https://statsandr.com/blog/mortgage-calculator-r-shiny">article</a>. Back to <a href="https://www.antoinesoetewey.com/">antoinesoetewey.com</a> or <a href="https://statsandr.com/">statsandr.com</a>.</p>')
     ),
 
     # Main panel for displaying outputs ----
